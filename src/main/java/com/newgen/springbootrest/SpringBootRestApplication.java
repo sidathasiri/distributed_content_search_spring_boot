@@ -17,6 +17,7 @@ import java.util.Scanner;
 @SpringBootApplication
 public class SpringBootRestApplication {
     private static int port;
+    public static String[] servingFiles;
     public static void main(String[] args) throws IOException {
 
         Scanner scanner = new Scanner(System.in);
@@ -40,11 +41,8 @@ public class SpringBootRestApplication {
 
         new Thread(node1).start();
 
-        String[] sampleFiles = fileService.getAll();
-        int rand = 3 + randomNum.nextInt(6-3);
-        for(int i=0; i<rand; i++) {
-            int index = randomNum.nextInt(20);
-            node1.addResource(sampleFiles[index], "/"+sampleFiles[index]);
+        for(int i=0; i<servingFiles.length; i++) {
+            node1.addResource(servingFiles[i], "/"+servingFiles[i]);
         }
         node1.showResources();
 
