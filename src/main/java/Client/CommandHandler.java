@@ -11,7 +11,7 @@ public class CommandHandler {
 
     public void execute(String command) throws IOException {
         switch (command.split(" ")[0]){
-            case "show":
+            case "routing":
                 node.showRoutingTable();
                 break;
             case "unregister":

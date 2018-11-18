@@ -206,7 +206,7 @@ public class Node implements Runnable{
 
     public void unregister() throws IOException{
         //length UNREG IP_address port_no username
-        this.myNeighbours.clear();
+       // this.myNeighbours.clear();
         ds = new DatagramSocket();
         byte b[] = ("0036 UNREG "+this.ip+" "+this.port+" "+this.username).getBytes();     //request to register
 
