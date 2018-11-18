@@ -9,7 +9,7 @@ public class CommandHandler {
         this.node = node;
     }
 
-    public void execute(String command){
+    public void execute(String command) throws IOException {
         switch (command.split(" ")[0]){
             case "show":
                 node.showRoutingTable();
@@ -49,6 +49,9 @@ public class CommandHandler {
                 break;
             case "files":
                 node.showResources();
+                break;
+            case "leave":
+                node.leave();
                 break;
             default:
                 System.out.println("False command!");

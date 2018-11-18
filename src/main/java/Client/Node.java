@@ -93,6 +93,57 @@ public class Node implements Runnable{
                     case "SEROK":
                         System.out.println("SEROK received by "+port);
                         break;
+                    case "LEAVE":
+                        String ip = received.split(" ")[2];
+                        int port = Integer.parseInt(received.split(" ")[3]);
+                        int removingIndex = -1;
+                        for(int i =0; i<myNeighbours.size(); i++){
+                            if(myNeighbours.get(i).getIp().equals(ip) && myNeighbours.get(i).getPort() == port){
+                                removingIndex = i;
+                            }
+                        }
+                        if(removingIndex>=0){
+                            myNeighbours.remove(removingIndex);
+                            System.out.println("removed node "+ip+":"+port);
+                            byte[] msg = ("0014 LEAVEOK 0").getBytes();
+
+                            InetAddress receiverIP = null;
+                            try {
+                                receiverIP = InetAddress.getByName("localhost");
+
+                                DatagramPacket packet = new DatagramPacket(msg, msg.length, receiverIP, port);
+                                ds.send(packet);
+                            }catch (IOException e){
+                                e.printStackTrace();
+                            }
+                        } else {
+                            System.out.println("I dont have " + ip + ":" + port + " to remove");
+                        }
+
+                        //asking others to remove
+//                        byte[] msg = ("0028 LEAVE "+ip+" "+String.valueOf(port)).getBytes();
+//                        for(Node node:myNeighbours){
+//                            InetAddress neighbourIP = null;
+//                            try {
+//                                neighbourIP = InetAddress.getByName("localhost");
+//                                int neighbourPort = node.getPort();
+//
+//                                DatagramPacket packet = new DatagramPacket(msg, msg.length, neighbourIP, neighbourPort);
+//                                ds.send(packet);
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+
+                        break;
+                    case "LEAVEOK":
+                        if (received.split(" ")[2].equals("0"))
+                            System.out.println(this.ip+":"+this.port+" Leave succeful");
+                        else
+                            System.out.println("Leave failed!");
+                        break;
+                     default:
+                         System.out.println("Ïn default");
                 }
             }
         }catch (BindException ex){
@@ -294,5 +345,18 @@ public class Node implements Runnable{
         resources.forEach((name, url) -> {
             System.out.println(name);
         });
+    }
+
+    public void leave() throws IOException{
+        //0028 LEAVE 64.12.123.190 432
+        byte[] msg = ("0028 LEAVE "+this.ip+" "+this.port).getBytes();
+        for(Node node:myNeighbours){
+            InetAddress ip = InetAddress.getByName("localhost");
+            int port = node.getPort();
+
+            DatagramPacket packet = new DatagramPacket(msg, msg.length, ip, port);
+            ds.send(packet);
+        }
+        myNeighbours.clear();
     }
 }
