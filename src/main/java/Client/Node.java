@@ -388,10 +388,10 @@ public class Node implements Runnable{
         myNeighbours.clear();
     }
 
-    public void download(String name) throws IOException, NoSuchAlgorithmException {
+    public void download(String ip, String port, String name) throws IOException, NoSuchAlgorithmException {
         try {
             System.out.println("Started downloading...");
-            BufferedInputStream in = new BufferedInputStream(new URL("http://localhost:3000/files/download?name="+name).openStream());
+            BufferedInputStream in = new BufferedInputStream(new URL("http://"+ip+":"+port+"/files/download?name="+name).openStream());
             String path = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloaded\\"+name+".txt";
             FileOutputStream fileOutputStream = new FileOutputStream(path);
             byte dataBuffer[] = new byte[1024];

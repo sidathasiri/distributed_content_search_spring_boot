@@ -56,11 +56,13 @@ public class CommandHandler {
                 break;
             case "download":
                 String[] commandArr = command.split(" ");
+                String ip = commandArr[1];
+                String port = commandArr[2];
                 String fileName = "";
-                for(int i=1; i<commandArr.length; i++)
+                for(int i=3; i<commandArr.length; i++)
                     fileName += " "+ commandArr[i];
                 System.out.println(fileName.trim());
-                node.download(fileName.trim());
+                node.download(ip, port, fileName.trim());
             default:
                 //System.out.println("False command!");
         }
