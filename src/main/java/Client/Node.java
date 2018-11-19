@@ -2,9 +2,7 @@ package Client;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Node implements Runnable{
     private String ip;
@@ -12,7 +10,7 @@ public class Node implements Runnable{
     private String username;
     public ArrayList<Node> myNeighbours = new ArrayList<>();
 
-    private Map resources = new HashMap<>();
+    private ArrayList<String> resources = new ArrayList<>();
 
     DatagramSocket ds;
 
@@ -28,7 +26,7 @@ public class Node implements Runnable{
     }
 
     public void addResource(String name, String url){
-        this.resources.put(name, url);
+        this.resources.add(name);
     }
 
     @Override
@@ -73,10 +71,28 @@ public class Node implements Runnable{
                         String fileName = splittedCommand[1];
                         String hops = splittedCommand[2];
 
-                        if(this.resources.get(fileName) == null) {
+                        ArrayList<String> foundFiles=new ArrayList<>();
+
+                        for (String file_Name:this.resources){
+                            for (String word:file_Name.split(" ")){ //for space separated words in selected files
+                                if (word.equalsIgnoreCase(fileName)){
+                                    foundFiles.add(fileName);
+                                    break;
+                                }
+                            }
+                            if (file_Name.equalsIgnoreCase(fileName)){ //chek for hall file name in selected files
+                                foundFiles.add(fileName);
+                                break;
+                            }
+                        }
+
+                        Set<String> searchResults = new HashSet<>(foundFiles);
+
+
+                        if(foundFiles.isEmpty()) {
                             System.out.println(this.port + ": I dont have " + fileName);
                             try {
-                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], hops);
+                                this.askNeighboursToSearch(searchResults, command.split(" ")[2], command.split(" ")[3], hops);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -246,9 +262,15 @@ public class Node implements Runnable{
         }
     }
 
-    public void askNeighboursToSearch(String file, String searcherIp, String searcherPort, String hops) throws IOException{
+    public void askNeighboursToSearch(Set<String>  file, String searcherIp, String searcherPort, String hops) throws IOException{
 
-        byte b[] = ("0047 SER "+searcherIp+" "+searcherPort+" "+file+" "+hops).getBytes();
+        String filesStr="";
+
+        for (String fileName: file){
+            filesStr+="\""+fileName+ "\" ";
+        }
+
+        byte b[] = ("0047 SER "+searcherIp+" "+searcherPort+" "+filesStr.trim()+" "+hops).getBytes();
         String received = b.toString();
         System.out.println("asking neighbour received "+received);
         ds = new DatagramSocket();
@@ -342,7 +364,7 @@ public class Node implements Runnable{
     public void showResources(){
         System.out.println("Stored files at "+ip+":"+port);
         System.out.println("---------------------------------------");
-        resources.forEach((name, url) -> {
+        resources.forEach((name) -> {
             System.out.println(name);
         });
     }
