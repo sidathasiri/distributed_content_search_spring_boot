@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 @RestController
@@ -41,17 +43,23 @@ public class FileController {
     }
 
     @RequestMapping(path = "/download", method = RequestMethod.GET)
-    public ResponseEntity<Resource> download(@RequestParam(value="name") String name) throws IOException {
+    public ResponseEntity<Resource> download(@RequestParam(value="name") String name) throws IOException, NoSuchAlgorithmException {
         Random rand = new Random();
         int fileSize = (2 + rand.nextInt(8))*1024*1024;
-        System.out.println(fileSize);
         char[] chars = new char[fileSize];
         Arrays.fill(chars, 'a');
 
         String writingStr = new String(chars);
 
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(writingStr.getBytes(StandardCharsets.UTF_8));
+        String encoded = Base64.getEncoder().encodeToString(hash);
+
+        System.out.println("File: "+name+"\nFile Size:"+fileSize/(1024*1024)+"Mb\nHash:"+encoded);
+
         //random file
-        BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloading_files\\"+name+".txt"));
+        String fileName = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloading_files\\"+name+".txt";
+        BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         writer.write(writingStr);
 
         writer.close();
@@ -60,7 +68,7 @@ public class FileController {
         String headerValue = "attachment; filename="+name+".txt";
         headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
 
-        File file = ResourceUtils.getFile("classpath:static/File_Names.txt");
+        File file = ResourceUtils.getFile(fileName);
 //        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
 
         Path path = Paths.get(file.getAbsolutePath());
