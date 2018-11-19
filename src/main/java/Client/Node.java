@@ -2,6 +2,9 @@ package Client;
 
 import java.io.IOException;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Node implements Runnable{
@@ -380,5 +383,35 @@ public class Node implements Runnable{
             ds.send(packet);
         }
         myNeighbours.clear();
+    }
+
+    public void download(String name) throws IOException, NoSuchAlgorithmException {
+        try {
+            System.out.println("Started downloading...");
+            BufferedInputStream in = new BufferedInputStream(new URL("http://localhost:3000/files/download?name="+name).openStream());
+            String path = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloaded\\"+name+".txt";
+            FileOutputStream fileOutputStream = new FileOutputStream(path);
+            byte dataBuffer[] = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+
+            Scanner scanner = new Scanner(new FileReader(path));
+            StringBuilder sb = new StringBuilder();
+            String outString;
+            while(scanner.hasNext()) {
+                sb.append(scanner.next());
+            }
+            scanner.close();
+            System.out.println("Download complete!");
+            outString = sb.toString();
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(outString.getBytes(StandardCharsets.UTF_8));
+            String encoded = Base64.getEncoder().encodeToString(hash);
+            System.out.println("Downloaded file hash:"+encoded);
+        } catch (IOException e) {
+            // handle exception
+        }
     }
 }
