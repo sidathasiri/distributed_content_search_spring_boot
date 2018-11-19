@@ -1,12 +1,13 @@
 package Client;
 
 import java.io.*;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.Scanner;
 
 
 public class UDP_client {
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws IOException, NoSuchAlgorithmException {
 
         Scanner scanner = new Scanner(System.in);
         Random randomNum = new Random();

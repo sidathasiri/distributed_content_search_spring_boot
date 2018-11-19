@@ -11,6 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -18,7 +19,7 @@ import java.util.Scanner;
 public class SpringBootRestApplication {
     private static int port;
     public static String[] servingFiles;
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
 
         Scanner scanner = new Scanner(System.in);
         Random randomNum = new Random();

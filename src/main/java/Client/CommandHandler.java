@@ -1,6 +1,7 @@
 package Client;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 public class CommandHandler {
     private Node node;
@@ -9,7 +10,7 @@ public class CommandHandler {
         this.node = node;
     }
 
-    public void execute(String command) throws IOException {
+    public void execute(String command) throws IOException, NoSuchAlgorithmException {
         switch (command.split(" ")[0]){
             case "routing":
                 node.showRoutingTable();
@@ -53,8 +54,15 @@ public class CommandHandler {
             case "leave":
                 node.leave();
                 break;
+            case "download":
+                String[] commandArr = command.split(" ");
+                String fileName = "";
+                for(int i=1; i<commandArr.length; i++)
+                    fileName += " "+ commandArr[i];
+                System.out.println(fileName.trim());
+                node.download(fileName.trim());
             default:
-                System.out.println("False command!");
+                //System.out.println("False command!");
         }
     }
 }
