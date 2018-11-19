@@ -1,5 +1,8 @@
 package Client;
 
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
