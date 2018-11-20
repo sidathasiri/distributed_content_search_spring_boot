@@ -98,7 +98,7 @@ public class Node implements Runnable{
                         if(foundFiles.isEmpty()) {
                             System.out.println(this.port + ": I dont have " + fileName);
                             try {
-                                this.askNeighboursToSearch(searchResults, command.split(" ")[2], command.split(" ")[3], hops);
+                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], hops);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -106,7 +106,7 @@ public class Node implements Runnable{
                         else {
                             System.out.println(this.port + ": I have " + fileName);
                             try {
-                                sendFilePathToRequester(fileName, command.split(" ")[2], command.split(" ")[3]);
+                                sendFilePathToRequester(searchResults, command.split(" ")[2], command.split(" ")[3]);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -268,15 +268,11 @@ public class Node implements Runnable{
         }
     }
 
-    public void askNeighboursToSearch(Set<String>  file, String searcherIp, String searcherPort, String hops) throws IOException{
+    public void askNeighboursToSearch(String  fileName, String searcherIp, String searcherPort, String hops) throws IOException{
 
-        String filesStr="";
 
-        for (String fileName: file){
-            filesStr+="\""+fileName+ "\" ";
-        }
 
-        byte b[] = ("0047 SER "+searcherIp+" "+searcherPort+" "+filesStr.trim()+" "+hops).getBytes();
+        byte b[] = ("0047 SER "+searcherIp+" "+searcherPort+" "+fileName+" "+hops).getBytes();
         String received = b.toString();
         System.out.println("asking neighbour received "+received);
         ds = new DatagramSocket();
@@ -292,10 +288,17 @@ public class Node implements Runnable{
         }
     }
 
-    public void sendFilePathToRequester(String fileName, String receiverIP, String receiverPort) throws IOException{
+    public void sendFilePathToRequester(Set<String> fileName, String receiverIP, String receiverPort) throws IOException{
+
+        String filesStr="";
+
+        for (String result: fileName){
+            filesStr+="\""+result+ "\" ";
+        }
+
         byte b[] = ("0047 SEROK 1 "+ip+" "+port+" 1 "+fileName).getBytes();
         String received = b.toString();
-        System.out.println("sending found results "+fileName);
+        System.out.println("sending found results "+filesStr.trim());
         ds = new DatagramSocket();
 
         InetAddress ip = InetAddress.getByName("localhost");
