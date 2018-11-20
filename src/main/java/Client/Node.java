@@ -1,11 +1,15 @@
 package Client;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.ServletContext;
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -15,6 +19,8 @@ public class Node implements Runnable{
     private int port;
     private String username;
     public ArrayList<Node> myNeighbours = new ArrayList<>();
+    @Autowired
+    ServletContext context;
 
     private ArrayList<String> resources = new ArrayList<>();
 
@@ -396,7 +402,9 @@ public class Node implements Runnable{
             System.out.println("Started downloading...");
             BufferedInputStream in = new BufferedInputStream(new URL("http://"+ip+":"+port+"/files/download?name="+name).openStream());
             if(in.available()>0) {
-                String path = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloaded\\" + name + ".txt";
+                String path = "static/downloaded";
+                ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+                path = classLoader.getResource(path).getPath().split("target")[0].substring(1)+"src/main/resources/static/downloaded/"+name.replace("%20", " ")+".txt";
                 FileOutputStream fileOutputStream = new FileOutputStream(path);
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.ServletContext;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -29,6 +30,9 @@ import java.util.*;
 public class FileController {
     @Autowired
     FileService fileService;
+
+    @Autowired
+    ServletContext context;
 
     @RequestMapping("/all")
     public String[] getAll() throws IOException {
@@ -67,7 +71,8 @@ public class FileController {
             System.out.println("File: " + name + "\nFile Size:" + fileSize / (1024 * 1024) + "Mb\nHash:" + encoded);
 
             //random file
-            String fileName = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloading_files\\" + name + ".txt";
+            ClassLoader classLoader = getClass().getClassLoader();
+            String fileName = classLoader.getResource(".").getFile().split("target")[0].substring(1) + "src/main/resources/static/created_files/"+name+".txt";
             BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
             writer.write(writingStr);
 
