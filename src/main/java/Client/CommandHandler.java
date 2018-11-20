@@ -60,9 +60,10 @@ public class CommandHandler {
                 String port = commandArr[2];
                 String fileName = "";
                 for(int i=3; i<commandArr.length; i++)
-                    fileName += " "+ commandArr[i];
-                System.out.println(fileName.trim());
-                node.download(ip, port, fileName.trim());
+                    fileName += commandArr[i]+"%20";
+                fileName = fileName.substring(0, fileName.length()-3);
+                System.out.println(fileName);
+                node.download(ip, port, fileName);
             default:
                 //System.out.println("False command!");
         }

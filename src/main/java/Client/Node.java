@@ -392,27 +392,31 @@ public class Node implements Runnable{
         try {
             System.out.println("Started downloading...");
             BufferedInputStream in = new BufferedInputStream(new URL("http://"+ip+":"+port+"/files/download?name="+name).openStream());
-            String path = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloaded\\"+name+".txt";
-            FileOutputStream fileOutputStream = new FileOutputStream(path);
-            byte dataBuffer[] = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                fileOutputStream.write(dataBuffer, 0, bytesRead);
-            }
-
-            Scanner scanner = new Scanner(new FileReader(path));
-            StringBuilder sb = new StringBuilder();
-            String outString;
-            while(scanner.hasNext()) {
-                sb.append(scanner.next());
-            }
-            scanner.close();
-            System.out.println("Download complete!");
-            outString = sb.toString();
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(outString.getBytes(StandardCharsets.UTF_8));
-            String encoded = Base64.getEncoder().encodeToString(hash);
-            System.out.println("Downloaded file hash:"+encoded);
+            System.out.println(in.available());
+            if(in.available()>0) {
+                String path = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloaded\\" + name + ".txt";
+                FileOutputStream fileOutputStream = new FileOutputStream(path);
+                byte dataBuffer[] = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                    fileOutputStream.write(dataBuffer, 0, bytesRead);
+                }
+                System.out.println(in.available());
+                Scanner scanner = new Scanner(new FileReader(path));
+                StringBuilder sb = new StringBuilder();
+                String outString;
+                while (scanner.hasNext()) {
+                    sb.append(scanner.next());
+                }
+                scanner.close();
+                System.out.println("Download complete!");
+                outString = sb.toString();
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(outString.getBytes(StandardCharsets.UTF_8));
+                String encoded = Base64.getEncoder().encodeToString(hash);
+                System.out.println("Downloaded file hash:" + encoded);
+            } else
+                System.out.println("Download Failed!");
         } catch (IOException e) {
             // handle exception
         }
