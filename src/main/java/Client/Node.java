@@ -395,7 +395,6 @@ public class Node implements Runnable{
         try {
             System.out.println("Started downloading...");
             BufferedInputStream in = new BufferedInputStream(new URL("http://"+ip+":"+port+"/files/download?name="+name).openStream());
-            System.out.println(in.available());
             if(in.available()>0) {
                 String path = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloaded\\" + name + ".txt";
                 FileOutputStream fileOutputStream = new FileOutputStream(path);
@@ -404,7 +403,6 @@ public class Node implements Runnable{
                 while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
                     fileOutputStream.write(dataBuffer, 0, bytesRead);
                 }
-                System.out.println(in.available());
                 Scanner scanner = new Scanner(new FileReader(path));
                 StringBuilder sb = new StringBuilder();
                 String outString;

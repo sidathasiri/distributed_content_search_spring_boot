@@ -46,6 +46,8 @@ public class CommandHandler {
                     node.search(fileName.trim());
                 } catch (IOException e) {
                     e.printStackTrace();
+                } catch (ArrayIndexOutOfBoundsException ex){
+                    System.out.println("Illegal command");
                 }
                 break;
             case "files":
@@ -55,15 +57,21 @@ public class CommandHandler {
                 node.leave();
                 break;
             case "download":
-                String[] commandArr = command.split(" ");
-                String ip = commandArr[1];
-                String port = commandArr[2];
-                String fileName = "";
-                for(int i=3; i<commandArr.length; i++)
-                    fileName += commandArr[i]+"%20";
-                fileName = fileName.substring(0, fileName.length()-3);
-                System.out.println(fileName);
-                node.download(ip, port, fileName);
+                try {
+                    String[] commandArr = command.split(" ");
+                    String ip = commandArr[1];
+                    String port = commandArr[2];
+                    String fileName = "";
+                    for (int i = 3; i < commandArr.length; i++)
+                        fileName += commandArr[i] + "%20";
+                    fileName = fileName.substring(0, fileName.length() - 3);
+                    System.out.println(fileName);
+                    node.download(ip, port, fileName);
+                }catch (ArrayIndexOutOfBoundsException ex){
+                    System.out.println("Illegal command");
+                } catch (StringIndexOutOfBoundsException ex){
+                    System.out.println("Illegal command");
+                }
             default:
                 //System.out.println("False command!");
         }

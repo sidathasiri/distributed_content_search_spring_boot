@@ -44,40 +44,53 @@ public class FileController {
 
     @RequestMapping(path = "/download", method = RequestMethod.GET)
     public ResponseEntity<Resource> download(@RequestParam(value="name") String name) throws IOException, NoSuchAlgorithmException {
-        Random rand = new Random();
-        int fileSize = (2 + rand.nextInt(8))*1024*1024;
-        char[] chars = new char[fileSize];
-        Arrays.fill(chars, 'a');
+        String[] servingFiles = fileService.getAllServingFiles();
+        boolean isIncluded = false;
+        for(String i: servingFiles){
+            if(i.equalsIgnoreCase(name)){
+                isIncluded = true;
+                break;
+            }
+        }
+        if (isIncluded) {
+            Random rand = new Random();
+            int fileSize = (2 + rand.nextInt(8)) * 1024 * 1024;
+            char[] chars = new char[fileSize];
+            Arrays.fill(chars, 'a');
 
-        String writingStr = new String(chars);
+            String writingStr = new String(chars);
 
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(writingStr.getBytes(StandardCharsets.UTF_8));
-        String encoded = Base64.getEncoder().encodeToString(hash);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(writingStr.getBytes(StandardCharsets.UTF_8));
+            String encoded = Base64.getEncoder().encodeToString(hash);
 
-        System.out.println("File: "+name+"\nFile Size:"+fileSize/(1024*1024)+"Mb\nHash:"+encoded);
+            System.out.println("File: " + name + "\nFile Size:" + fileSize / (1024 * 1024) + "Mb\nHash:" + encoded);
 
-        //random file
-        String fileName = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloading_files\\"+name+".txt";
-        BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-        writer.write(writingStr);
+            //random file
+            String fileName = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloading_files\\" + name + ".txt";
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+            writer.write(writingStr);
 
-        writer.close();
+            writer.close();
 
-        HttpHeaders headers = new HttpHeaders();
-        String headerValue = "attachment; filename="+name+".txt";
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
+            HttpHeaders headers = new HttpHeaders();
+            String headerValue = "attachment; filename=" + name + ".txt";
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, headerValue);
 
-        File file = ResourceUtils.getFile(fileName);
+            File file = ResourceUtils.getFile(fileName);
 //        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
 
-        Path path = Paths.get(file.getAbsolutePath());
-        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+            Path path = Paths.get(file.getAbsolutePath());
+            ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentLength(file.length())
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .body(resource);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(file.length())
+                    .contentType(MediaType.parseMediaType("application/octet-stream"))
+                    .body(resource);
+        } else{
+            System.out.println("File does not exists!");
+        }
+        return null;
     }
 }
