@@ -133,7 +133,11 @@ public class Node implements Runnable{
                         if(removingIndex>=0){
                             myNeighbours.remove(removingIndex);
                             System.out.println("removed node "+ip+":"+port);
-                            byte[] msg = ("0014 LEAVEOK 0").getBytes();
+                            String request = "LEAVEOK 0";
+                            String length = String.valueOf(request.length()+5);
+                            length = String.format("%4s", length).replace(' ', '0');
+                            request = length + " " + request;
+                            byte[] msg = request.getBytes();
 
                             InetAddress receiverIP = null;
                             try {
