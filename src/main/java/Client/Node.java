@@ -218,7 +218,11 @@ public class Node implements Runnable{
 
     public void register() throws IOException {
         ds = new DatagramSocket();
-        byte b[] = ("0036 REG "+this.ip+" "+this.port+" "+this.username).getBytes();     //request to register
+        String msg = "REG "+this.ip+" "+this.port+" "+this.username;
+        String length = String.valueOf(msg.length()+5);
+        length = String.format("%4s", length).replace(' ', '0');
+        msg = length + " " + msg;
+        byte b[] = msg.getBytes();     //request to register
 
         InetAddress ip = InetAddress.getByName("localhost");
         int port = 55555;
@@ -236,7 +240,11 @@ public class Node implements Runnable{
         //length UNREG IP_address port_no username
        // this.myNeighbours.clear();
         ds = new DatagramSocket();
-        byte b[] = ("0036 UNREG "+this.ip+" "+this.port+" "+this.username).getBytes();     //request to register
+        String msg = "UNREG "+this.ip+" "+this.port+" "+this.username;
+        String length = String.valueOf(msg.length()+5);
+        length = String.format("%4s", length).replace(' ', '0');
+        msg = length + " " + msg;
+        byte b[] = msg.getBytes();     //request to register
 
         InetAddress ip = InetAddress.getByName("localhost");
         int port = 55555;
@@ -262,8 +270,12 @@ public class Node implements Runnable{
 
     public void search(String name) throws IOException {
         ds = new DatagramSocket();
+        String msg = "SER "+this.ip+" "+this.port+" \""+name+"\" 0";
+        String length = String.valueOf(msg.length()+5);
+        length = String.format("%4s", length).replace(' ', '0');
+        msg = length + " " + msg;
         //0047 SER 129.82.62.142 5070 "Lord of the rings"
-        byte b[] = ("0047 SER "+this.ip+" "+this.port+" \""+name+"\" 0").getBytes();
+        byte b[] = msg.getBytes();
 
         InetAddress ip = InetAddress.getLocalHost();
         for(Node n: myNeighbours){
@@ -275,9 +287,6 @@ public class Node implements Runnable{
     }
 
     public void askNeighboursToSearch(String  fileName, String searcherIp, String searcherPort, String hops) throws IOException{
-
-
-
         byte b[] = ("0047 SER "+searcherIp+" "+searcherPort+" "+fileName+" "+hops).getBytes();
         String received = b.toString();
         System.out.println("asking neighbour received "+received);
@@ -295,14 +304,17 @@ public class Node implements Runnable{
     }
 
     public void sendFilePathToRequester(Set<String> fileName, String receiverIP, String receiverPort) throws IOException{
-
         String filesStr="";
 
         for (String result: fileName){
             filesStr+="\""+result+ "\" ";
         }
 
-        byte b[] = ("0047 SEROK 1 "+ip+" "+port+" 1 "+fileName).getBytes();
+        String msg = "SEROK 1 "+ip+" "+port+" 1 "+fileName;
+        String length = String.valueOf(msg.length()+5);
+        length = String.format("%4s", length).replace(' ', '0');
+        msg = length + " " + msg;
+        byte b[] = msg.getBytes();
         String received = b.toString();
         System.out.println("sending found results "+filesStr.trim());
         ds = new DatagramSocket();
@@ -349,7 +361,11 @@ public class Node implements Runnable{
     }
 
     public void join() throws IOException {
-        byte[] msg = ("0027 JOIN "+this.ip+" "+this.port).getBytes();
+        String request = "JOIN "+this.ip+" "+this.port;
+        String length = String.valueOf(request.length()+5);
+        length = String.format("%4s", length).replace(' ', '0');
+        request = length + " " + request;
+        byte[] msg = request.getBytes();
         for(Node node:myNeighbours){
             InetAddress ip = InetAddress.getByName("localhost");
             int port = node.getPort();
@@ -386,7 +402,12 @@ public class Node implements Runnable{
 
     public void leave() throws IOException{
         //0028 LEAVE 64.12.123.190 432
-        byte[] msg = ("0028 LEAVE "+this.ip+" "+this.port).getBytes();
+        String request = "LEAVE "+this.ip+" "+this.port;
+        String length = String.valueOf(request.length()+5);
+        length = String.format("%4s", length).replace(' ', '0');
+        request = length + " " + request;
+        System.out.println("leave:"+request);
+        byte[] msg = request.getBytes();
         for(Node node:myNeighbours){
             InetAddress ip = InetAddress.getByName("localhost");
             int port = node.getPort();
