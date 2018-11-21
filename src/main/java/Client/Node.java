@@ -190,6 +190,7 @@ public class Node implements Runnable{
         boolean found = false;
         for(Node i:myNeighbours){
             if(i.getIp().equals(ip) && i.getPort()==port){
+                System.out.println("neighbour found!");
                 found = true;
                 break;
             }
@@ -362,7 +363,9 @@ public class Node implements Runnable{
                 for(int i=3; i<responseMsgArr.length; i+=2){
                     String nodeIp = responseMsgArr[i];
                     int nodePort = Integer.parseInt(responseMsgArr[i+1]);
-                    myNeighbours.add(new Node(nodeIp, nodePort));
+                    if(!isNeighbour(nodeIp, nodePort)) {
+                        myNeighbours.add(new Node(nodeIp, nodePort));
+                    }
                 }
                 for(Node i:myNeighbours)
                     System.out.println(this.port+": Neighbours"+i.toString());
