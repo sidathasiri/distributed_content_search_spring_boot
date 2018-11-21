@@ -60,7 +60,7 @@ public class Node implements Runnable{
 
                 byte[] data = incoming.getData();
                 String received = new String(data, 0, incoming.getLength());
-                System.out.println("received "+received);
+//                System.out.println("received "+received);
 
                 switch (received.split(" ")[1]){
                     case "JOIN":
@@ -120,7 +120,19 @@ public class Node implements Runnable{
                         }
                         break;
                     case "SEROK":
-                        System.out.println("SEROK received by "+port);
+//                      0114 SEROK 3 129.82.128.1 2301 baby_go_home.mp3 baby_come_back.mp3 baby.mpeg
+                        String[] result = received.split("\"");
+                        ArrayList<String> cleanedArr = cleanArray(result);
+                        String resultCommand = cleanedArr.get(0);
+                        int resultFiles = Integer.parseInt(resultCommand.split(" ")[2]);
+                        String foundIp = resultCommand.split(" ")[3];
+                        String foundPort = resultCommand.split(" ")[4];
+                        String foundHops = resultCommand.split(" ")[5];
+                        System.out.println(resultFiles+" results found from "+foundIp+":"+foundPort+" in "+foundHops+" hops");
+                        System.out.print("File Names:");
+                        for(int i=1; i<cleanedArr.size(); i++){
+                            System.out.print(cleanedArr.get(i)+" ");
+                        }
                         break;
                     case "LEAVE":
                         String ip = received.split(" ")[2];
@@ -184,6 +196,16 @@ public class Node implements Runnable{
         }catch (SocketException e) {
             e.printStackTrace();
         }
+    }
+
+    private ArrayList<String> cleanArray(String[] arr){
+        ArrayList<String> cleanedList = new ArrayList<>();
+        for(String i:arr){
+            if(!i.trim().equals(""))
+                cleanedList.add(i.trim());
+        }
+
+        return cleanedList;
     }
 
     private Boolean isNeighbour(String ip, int port){
