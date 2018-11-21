@@ -81,7 +81,8 @@ public class Node implements Runnable{
                         String[] splittedCommand = received.split("\"");
                         String command = splittedCommand[0];
                         String fileName = splittedCommand[1];
-                        String hops = splittedCommand[2];
+                        String hops = splittedCommand[2].trim();
+                        int newHops = Integer.parseInt(hops)+1;
 
                         ArrayList<String> foundFiles=new ArrayList<>();
 
@@ -104,7 +105,7 @@ public class Node implements Runnable{
                         if(foundFiles.isEmpty()) {
                             System.out.println(this.port + ": I dont have " + fileName);
                             try {
-                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], hops+1);
+                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], String.valueOf(newHops));
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -112,7 +113,7 @@ public class Node implements Runnable{
                         else {
                             System.out.println(this.port + ": I have " + fileName);
                             try {
-                                sendFilePathToRequester(searchResults, command.split(" ")[2], command.split(" ")[3]);
+                                sendFilePathToRequester(searchResults, command.split(" ")[2], command.split(" ")[3], String.valueOf(newHops));
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -313,14 +314,16 @@ public class Node implements Runnable{
         }
     }
 
-    public void sendFilePathToRequester(Set<String> fileName, String receiverIP, String receiverPort) throws IOException{
+    public void sendFilePathToRequester(Set<String> fileName, String receiverIP, String receiverPort, String hops) throws IOException{
         String filesStr="";
 
         for (String result: fileName){
             filesStr+="\""+result+ "\" ";
         }
 
-        String msg = "SEROK 1 "+ip+" "+port+" 1 "+fileName;
+        System.out.println("filesStr:"+filesStr);
+
+        String msg = "SEROK "+fileName.size()+" "+ip+" "+port+" "+hops+" "+filesStr;
         String length = String.valueOf(msg.length()+5);
         length = String.format("%4s", length).replace(' ', '0');
         msg = length + " " + msg;
