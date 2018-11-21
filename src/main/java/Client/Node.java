@@ -89,12 +89,12 @@ public class Node implements Runnable{
                         for (String file_Name:this.resources){
                             for (String word:file_Name.split(" ")){ //for space separated words in selected files
                                 if (word.equalsIgnoreCase(fileName)){
-                                    foundFiles.add(fileName);
+                                    foundFiles.add(file_Name);
                                     break;
                                 }
                             }
                             if (file_Name.equalsIgnoreCase(fileName)){ //chek for hall file name in selected files
-                                foundFiles.add(fileName);
+                                foundFiles.add(file_Name);
                                 break;
                             }
                         }
