@@ -104,7 +104,7 @@ public class Node implements Runnable{
                         if(foundFiles.isEmpty()) {
                             System.out.println(this.port + ": I dont have " + fileName);
                             try {
-                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], hops);
+                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], hops+1);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -273,7 +273,7 @@ public class Node implements Runnable{
     }
 
     public void search(String name) throws IOException {
-        ds = new DatagramSocket();
+//        ds = new DatagramSocket();
         String msg = "SER "+this.ip+" "+this.port+" \""+name+"\" 0";
         String length = String.valueOf(msg.length()+5);
         length = String.format("%4s", length).replace(' ', '0');
@@ -291,7 +291,12 @@ public class Node implements Runnable{
     }
 
     public void askNeighboursToSearch(String  fileName, String searcherIp, String searcherPort, String hops) throws IOException{
-        byte b[] = ("0047 SER "+searcherIp+" "+searcherPort+" "+fileName+" "+hops).getBytes();
+        String request = "SER "+searcherIp+" "+searcherPort+" \""+fileName+"\" "+hops;
+        String length = String.valueOf(request.length()+5);
+        length = String.format("%4s", length).replace(' ', '0');
+        request = length + " " + request;
+        System.out.println("aking neighbours:"+request);
+        byte b[] = request.getBytes();
         String received = b.toString();
         System.out.println("asking neighbour received "+received);
         ds = new DatagramSocket();
@@ -300,7 +305,8 @@ public class Node implements Runnable{
 
         for(Node n: myNeighbours){
             int port = n.getPort();
-            if(port!=Integer.parseInt(searcherPort) && !n.getIp().equals(searcherIp)) {
+            if(port!=Integer.parseInt(searcherPort) || !n.getIp().equals(searcherIp)) {
+                System.out.println("asked neighbour:"+n.getPort());
                 DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
                 ds.send(packet);
             }
