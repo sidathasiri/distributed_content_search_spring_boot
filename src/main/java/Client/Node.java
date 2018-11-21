@@ -105,7 +105,8 @@ public class Node implements Runnable{
                         if(foundFiles.isEmpty()) {
                             System.out.println(this.port + ": I dont have " + fileName);
                             try {
-                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], String.valueOf(newHops));
+                                if(newHops<=4)
+                                    this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], String.valueOf(newHops));
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -133,6 +134,7 @@ public class Node implements Runnable{
                         for(int i=1; i<cleanedArr.size(); i++){
                             System.out.print(cleanedArr.get(i)+" ");
                         }
+                        System.out.println("\n----------------------------------------------------");
                         break;
                     case "LEAVE":
                         String ip = received.split(" ")[2];
