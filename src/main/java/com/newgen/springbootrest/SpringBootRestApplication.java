@@ -1,6 +1,7 @@
 package com.newgen.springbootrest;
 
 import Client.CommandHandler;
+import Client.Gossip;
 import Client.Node;
 import com.newgen.springbootrest.service.FileService;
 import org.springframework.boot.SpringApplication;
@@ -47,6 +48,9 @@ public class SpringBootRestApplication {
         node1.register();
 
         CommandHandler commandHandler = new CommandHandler(node1);
+
+        Gossip gossip = new Gossip(node1);
+        gossip.run();
 
         while (true){
             String command = scanner.nextLine();

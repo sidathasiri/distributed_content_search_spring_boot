@@ -15,9 +15,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Node implements Runnable{
-    private String ip;
-    private int port;
-    private String username;
+    public String ip;
+    public int port;
+    public String username;
     public ArrayList<Node> myNeighbours = new ArrayList<>();
     @Autowired
     ServletContext context;
@@ -25,6 +25,9 @@ public class Node implements Runnable{
     private ArrayList<String> resources = new ArrayList<>();
 
     DatagramSocket ds;
+    public  int routingTableStatus=0;
+    public  int gossipSendingStatus=0;
+    public DatagramSocket socket = null;
 
     public  Node(String ip, int port, String username){
         this.ip = ip;
@@ -40,6 +43,17 @@ public class Node implements Runnable{
     public void addResource(String name, String url){
         this.resources.add(name);
     }
+
+    public  boolean isEqual(String ip,int port){
+        if(this.port==port && this.ip.equals(ip)){
+            return true;
+        }return false;
+    }
+
+    public String getKey(){
+        return ip+":"+port;
+    }
+
 
     @Override
     public void run() {
@@ -60,6 +74,7 @@ public class Node implements Runnable{
 
                 byte[] data = incoming.getData();
                 String received = new String(data, 0, incoming.getLength());
+                StringTokenizer st = new StringTokenizer(received, " ");
 //                System.out.println("received "+received);
 
                 switch (received.split(" ")[1]){
@@ -70,7 +85,7 @@ public class Node implements Runnable{
                         int newNodePort = Integer.parseInt(received.split(" ")[3]);
 
                         if(!isNeighbour(newNodeIp, newNodePort)){
-                            myNeighbours.add(new Node(newNodeIp, newNodePort));
+                            addToRoutingTable(new Node(newNodeIp, newNodePort));
                         }
 
                         for(Node i: myNeighbours)
@@ -189,8 +204,12 @@ public class Node implements Runnable{
                         else
                             System.out.println("Leave failed!");
                         break;
-                     default:
-                         System.out.println("Ïn default");
+                    case "GOSSIP":
+                        handleGossip(st,incoming,received);
+                        break;
+                    default:
+                        System.out.println("Invalid Command");
+                        break;
                 }
             }
         }catch (BindException ex){
@@ -388,7 +407,7 @@ public class Node implements Runnable{
                     String nodeIp = responseMsgArr[i];
                     int nodePort = Integer.parseInt(responseMsgArr[i+1]);
                     if(!isNeighbour(nodeIp, nodePort)) {
-                        myNeighbours.add(new Node(nodeIp, nodePort));
+                        addToRoutingTable(new Node(nodeIp, nodePort));
                     }
                 }
                 for(Node i:myNeighbours)
@@ -489,6 +508,101 @@ public class Node implements Runnable{
                 System.out.println("Download Failed!");
         } catch (IOException e) {
             // handle exception
+        }
+    }
+
+    public  void handleGossip(StringTokenizer st, DatagramPacket incoming, String msg) {
+
+        String encrypt = st.nextToken();
+        String String = st.nextToken();
+        String ip_of_sender=st.nextToken();
+        int port_of_sender= Integer.parseInt(st.nextToken());
+        int no_of_nodes_received=Integer.parseInt(st.nextToken());
+        ArrayList<String> nodeKeys = new ArrayList<>();
+
+        Node senderNode=new Node(ip_of_sender,port_of_sender,"");
+
+        for (Node node:this.myNeighbours) {
+            nodeKeys.add(node.ip+":"+node.port);
+        }
+
+        if (!nodeKeys.contains(senderNode.getKey())){
+            System.out.println("Node IP " + senderNode.ip + " Port "+senderNode.port+ " was added");
+            addToRoutingTable(senderNode);
+        }
+
+        for (int i=0;i<no_of_nodes_received;i++){
+            Node node=new Node(st.nextToken(),Integer.parseInt(st.nextToken()),"");
+
+            if (nodeKeys.contains(node.getKey())){
+                continue;
+            }else {
+                addToRoutingTable(node);
+                System.out.println("Node IP " + node.ip + " Port "+node.port+ " was added");
+            }
+
+        }
+        //    notifyActive(senderNode);
+        System.out.println("");
+
+    }
+
+    public void notifyActive(Node node){
+
+        InetAddress myip = null;
+
+        try {
+
+            myip = InetAddress.getByName(node.getIp());
+            int port = node.getPort();
+            String request="ACTIVE "+this.ip+" "+this.port;
+            String length = String.valueOf(request.length()+5);
+            length = String.format("%4s", length).replace(' ', '0');
+            request = length + " " + request;
+            byte[] msg = request.getBytes();
+            DatagramPacket packet = new DatagramPacket(msg, msg.length, myip, port);
+            try {
+                ds.send(packet);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addToRoutingTable(Node node){
+
+        ArrayList<String> nodeKeys = new ArrayList<>();
+        for (Node nodeVal:this.myNeighbours) {
+            nodeKeys.add(nodeVal.ip+":"+nodeVal.port);
+        }
+
+        if (nodeKeys.contains(node.getKey())){
+            return;
+        }else {
+            this.myNeighbours.add(node);
+            routingTableStatus_plus1();
+
+        }
+    }
+
+
+    public void routingTableStatus_plus1(){
+        routingTableStatus++;
+    }
+
+    public  void setGossipSendingStatusToRoutingTableStatus(){
+        gossipSendingStatus=routingTableStatus;
+    }
+
+
+    public  boolean hasRoutingTableIncreasedComparedToGossipStatus(){
+        if (routingTableStatus>gossipSendingStatus){
+            return true;
+        }else{
+            return false;
         }
     }
 }
