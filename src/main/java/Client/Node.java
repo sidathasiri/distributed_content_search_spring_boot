@@ -282,6 +282,7 @@ public class Node implements Runnable{
 
         addNeighboursAfterRegister();
         showRoutingTable();
+        join();
 
     }
 
@@ -475,6 +476,7 @@ public class Node implements Runnable{
             ds.send(packet);
         }
         myNeighbours.clear();
+        unregister();
     }
 
     public void download(String ip, String port, String name) throws IOException, NoSuchAlgorithmException {
