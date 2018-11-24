@@ -3,10 +3,7 @@ package Client;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.ServletContext;
-import java.io.BufferedInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -481,18 +478,31 @@ public class Node implements Runnable{
 
     public void download(String ip, String port, String name) throws IOException, NoSuchAlgorithmException {
         try {
-            System.out.println("Started downloading...");
-            BufferedInputStream in = new BufferedInputStream(new URL("http://"+ip+":"+port+"/files/download?name="+name).openStream());
-            if(in.available()>0) {
+            System.out.println("Startded downloading...");
+            URL url = new URL("http://"+ip+":"+port+"/files/download?name="+name);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setConnectTimeout(15000);
+            con.setReadTimeout(15000);
+
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer content = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            in.close();
+
+            if(content.toString().length()>0) {
                 String path = "static/downloaded";
                 ClassLoader classLoader = ClassLoader.getSystemClassLoader();
                 path = classLoader.getResource(path).getPath().split("target")[0].substring(1)+"src/main/resources/static/downloaded/"+name.replace("%20", " ")+".txt";
                 FileOutputStream fileOutputStream = new FileOutputStream(path);
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
-                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                    fileOutputStream.write(dataBuffer, 0, bytesRead);
-                }
+                fileOutputStream.write(content.toString().getBytes());
+
                 Scanner scanner = new Scanner(new FileReader(path));
                 StringBuilder sb = new StringBuilder();
                 String outString;
@@ -506,10 +516,35 @@ public class Node implements Runnable{
                 byte[] hash = digest.digest(outString.getBytes(StandardCharsets.UTF_8));
                 String encoded = Base64.getEncoder().encodeToString(hash);
                 System.out.println("Downloaded file hash:" + encoded);
-            } else
-                System.out.println("Download Failed!");
-        } catch (IOException e) {
-            // handle exception
+            } else {
+                System.out.println("No data retirevied! File not may exist at node");
+            }
+
+        } catch (java.net.SocketTimeoutException e) {
+            System.out.println("Connection timeout! Node may have down. Try another");
+            removeNeighbour(ip, Integer.parseInt(port));
+        } catch (ConnectException e){
+            System.out.println("Node is down. Try another!");
+            removeNeighbour(ip, Integer.parseInt(port));
+        } catch (MalformedURLException ex){
+            System.out.println("Error in the command");
+        } catch (SocketException ex){
+            System.out.println("Connection lost! Node may down");
+        }catch (UnknownHostException ex){
+            System.out.println("Error in IP or PORT");
+        }
+    }
+
+    private void removeNeighbour(String ip, int port){
+        int removingIndex = -1;
+        for(int i =0; i<myNeighbours.size(); i++){
+            if(myNeighbours.get(i).getIp().equals(ip) && myNeighbours.get(i).getPort() == port){
+                removingIndex = i;
+            }
+        }
+
+        if(removingIndex>=0){
+            myNeighbours.remove(removingIndex);
         }
     }
 
