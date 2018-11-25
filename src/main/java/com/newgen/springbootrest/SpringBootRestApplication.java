@@ -1,11 +1,10 @@
 package com.newgen.springbootrest;
 
-import Client.CommandHandler;
-import Client.Gossip;
-import Client.Node;
+import Client.*;
 import com.newgen.springbootrest.service.FileService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -37,7 +36,7 @@ public class SpringBootRestApplication {
 
         Node node1 = new Node(ip, port, username);
 
-        new Thread(node1).start();
+        new Thread(node1).start ();
 
         for(int i=0; i<servingFiles.length; i++) {
             node1.addResource(servingFiles[i], "/"+servingFiles[i]);
@@ -51,6 +50,12 @@ public class SpringBootRestApplication {
 
         Gossip gossip = new Gossip(node1);
         gossip.run();
+
+        Pulse pulse = new Pulse(node1);
+        pulse.run();
+
+        ActiveChecker activeChecker = new ActiveChecker(node1);
+        activeChecker.run();
 
         while (true){
             String command = scanner.nextLine();

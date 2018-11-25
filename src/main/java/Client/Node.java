@@ -15,19 +15,21 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Node implements Runnable{
+
     public String ip;
     public int port;
     public String username;
     public ArrayList<Node> myNeighbours = new ArrayList<>();
-    @Autowired
-    ServletContext context;
-
+    public HashMap<String,Node> availableNeighbours = new HashMap<>();
     private ArrayList<String> resources = new ArrayList<>();
-
     DatagramSocket ds;
     public  int routingTableStatus=0;
     public  int gossipSendingStatus=0;
     public DatagramSocket socket = null;
+
+    @Autowired
+    ServletContext context;
+
 
     public  Node(String ip, int port, String username){
         this.ip = ip;
@@ -54,168 +56,6 @@ public class Node implements Runnable{
         return ip+":"+port;
     }
 
-
-    @Override
-    public void run() {
-//        System.out.println(this.port+" port is listning...");
-        DatagramSocket socket = null;
-        try {
-            socket = new DatagramSocket(this.port);
-
-            while (true){
-                byte[] buffer = new byte[65536];
-                DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
-                try {
-
-                    socket.receive(incoming);
-                }catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                byte[] data = incoming.getData();
-                String received = new String(data, 0, incoming.getLength());
-                StringTokenizer st = new StringTokenizer(received, " ");
-//                System.out.println("received "+received);
-
-                switch (received.split(" ")[1]){
-                    case "JOIN":
-                        System.out.println(this.port+": join request "+received);
-
-                        String newNodeIp = received.split(" ")[2];
-                        int newNodePort = Integer.parseInt(received.split(" ")[3]);
-
-                        if(!isNeighbour(newNodeIp, newNodePort)){
-                            addToRoutingTable(new Node(newNodeIp, newNodePort));
-                        }
-
-                        for(Node i: myNeighbours)
-                            System.out.println(this.port+": neighbours "+i.toString());
-                        break;
-                    case "SER":
-                        System.out.println(this.port+": search request "+received);
-                        String[] splittedCommand = received.split("\"");
-                        String command = splittedCommand[0];
-                        String fileName = splittedCommand[1];
-                        String hops = splittedCommand[2].trim();
-                        int newHops = Integer.parseInt(hops)+1;
-
-                        ArrayList<String> foundFiles=new ArrayList<>();
-
-                        for (String file_Name:this.resources){
-                            for (String word:file_Name.split(" ")){ //for space separated words in selected files
-                                if (word.equalsIgnoreCase(fileName)){
-                                    foundFiles.add(file_Name);
-                                    break;
-                                }
-                            }
-                            if (file_Name.equalsIgnoreCase(fileName)){ //chek for hall file name in selected files
-                                foundFiles.add(file_Name);
-                                break;
-                            }
-                        }
-
-                        Set<String> searchResults = new HashSet<>(foundFiles);
-
-
-                        if(foundFiles.isEmpty()) {
-                            System.out.println(this.port + ": I dont have " + fileName);
-                            try {
-                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], String.valueOf(newHops));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        else {
-                            System.out.println(this.port + ": I have " + fileName);
-                            try {
-                                sendFilePathToRequester(searchResults, command.split(" ")[2], command.split(" ")[3], String.valueOf(newHops));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        break;
-                    case "SEROK":
-//                      0114 SEROK 3 129.82.128.1 2301 baby_go_home.mp3 baby_come_back.mp3 baby.mpeg
-                        String[] result = received.split("\"");
-                        ArrayList<String> cleanedArr = cleanArray(result);
-                        String resultCommand = cleanedArr.get(0);
-                        int resultFiles = Integer.parseInt(resultCommand.split(" ")[2]);
-                        String foundIp = resultCommand.split(" ")[3];
-                        String foundPort = resultCommand.split(" ")[4];
-                        String foundHops = resultCommand.split(" ")[5];
-                        System.out.println(resultFiles+" results found from "+foundIp+":"+foundPort+" in "+foundHops+" hops");
-                        System.out.print("File Names:");
-                        for(int i=1; i<cleanedArr.size(); i++){
-                            System.out.print(cleanedArr.get(i)+" ");
-                        }
-                        break;
-                    case "LEAVE":
-                        String ip = received.split(" ")[2];
-                        int port = Integer.parseInt(received.split(" ")[3]);
-                        int removingIndex = -1;
-                        for(int i =0; i<myNeighbours.size(); i++){
-                            if(myNeighbours.get(i).getIp().equals(ip) && myNeighbours.get(i).getPort() == port){
-                                removingIndex = i;
-                            }
-                        }
-                        if(removingIndex>=0){
-                            myNeighbours.remove(removingIndex);
-                            System.out.println("removed node "+ip+":"+port);
-                            String request = "LEAVEOK 0";
-                            String length = String.valueOf(request.length()+5);
-                            length = String.format("%4s", length).replace(' ', '0');
-                            request = length + " " + request;
-                            byte[] msg = request.getBytes();
-
-                            InetAddress receiverIP = null;
-                            try {
-                                receiverIP = InetAddress.getByName("localhost");
-
-                                DatagramPacket packet = new DatagramPacket(msg, msg.length, receiverIP, port);
-                                ds.send(packet);
-                            }catch (IOException e){
-                                e.printStackTrace();
-                            }
-                        } else {
-                            System.out.println("I dont have " + ip + ":" + port + " to remove");
-                        }
-
-                        //asking others to remove
-//                        byte[] msg = ("0028 LEAVE "+ip+" "+String.valueOf(port)).getBytes();
-//                        for(Node node:myNeighbours){
-//                            InetAddress neighbourIP = null;
-//                            try {
-//                                neighbourIP = InetAddress.getByName("localhost");
-//                                int neighbourPort = node.getPort();
-//
-//                                DatagramPacket packet = new DatagramPacket(msg, msg.length, neighbourIP, neighbourPort);
-//                                ds.send(packet);
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-
-                        break;
-                    case "LEAVEOK":
-                        if (received.split(" ")[2].equals("0"))
-                            System.out.println(this.ip+":"+this.port+" Leave succeful");
-                        else
-                            System.out.println("Leave failed!");
-                        break;
-                    case "GOSSIP":
-                        handleGossip(st,incoming,received);
-                        break;
-                    default:
-                        System.out.println("Invalid Command");
-                        break;
-                }
-            }
-        }catch (BindException ex){
-            System.out.println("This is already registered! Try a different one or un-regiter first");
-        }catch (SocketException e) {
-            e.printStackTrace();
-        }
-    }
 
     private ArrayList<String> cleanArray(String[] arr){
         ArrayList<String> cleanedList = new ArrayList<>();
@@ -263,7 +103,199 @@ public class Node implements Runnable{
         this.username = username;
     }
 
+    @Override
+    public String toString() {
+        return "Node{" +
+                "ip='" + ip + '\'' +
+                ", port=" + port +
+                '}';
+    }
+
+    @Override
+    public void run() {
+//        System.out.println(this.port+" port is listning...");
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket(this.port);
+
+            while (true){
+                byte[] buffer = new byte[65536];
+                DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
+                try {
+
+                    socket.receive(incoming);
+                }catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                byte[] data = incoming.getData();
+                String received = new String(data, 0, incoming.getLength());
+                StringTokenizer st = new StringTokenizer(received, " ");
+                String encodeLength= st.nextToken();
+
+                switch (st.nextToken()){
+
+                    case "JOIN":
+                        System.out.println(this.port+": join request "+received);
+
+                        String newNodeIp = received.split(" ")[2];
+                        int newNodePort = Integer.parseInt(received.split(" ")[3]);
+
+                        if(!isNeighbour(newNodeIp, newNodePort)){
+                            addToRoutingTable(new Node(newNodeIp, newNodePort));
+                        }
+
+                        for(Node i: myNeighbours)
+                            System.out.println(this.port+": neighbours "+i.toString());
+                        break;
+
+                    case "SER":
+                        System.out.println(this.port+": search request "+received);
+                        String[] splittedCommand = received.split("\"");
+                        String command = splittedCommand[0];
+                        String fileName = splittedCommand[1];
+                        String hops = splittedCommand[2].trim();
+                        int newHops = Integer.parseInt(hops)+1;
+
+                        ArrayList<String> foundFiles=new ArrayList<>();
+
+                        for (String file_Name:this.resources){
+                            for (String word:file_Name.split(" ")){ //for space separated words in selected files
+                                if (word.equalsIgnoreCase(fileName)){
+                                    foundFiles.add(file_Name);
+                                    break;
+                                }
+                            }
+                            if (file_Name.equalsIgnoreCase(fileName)){ //chek for hall file name in selected files
+                                foundFiles.add(file_Name);
+                                break;
+                            }
+                        }
+
+                        Set<String> searchResults = new HashSet<>(foundFiles);
+
+
+                        if(foundFiles.isEmpty()) {
+                            System.out.println(this.port + ": I dont have " + fileName);
+                            try {
+                                this.askNeighboursToSearch(fileName, command.split(" ")[2], command.split(" ")[3], String.valueOf(newHops));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        else {
+                            System.out.println(this.port + ": I have " + fileName);
+                            try {
+                                sendFilePathToRequester(searchResults, command.split(" ")[2], command.split(" ")[3], String.valueOf(newHops));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        break;
+
+                    case "SEROK":
+//                      0114 SEROK 3 129.82.128.1 2301 baby_go_home.mp3 baby_come_back.mp3 baby.mpeg
+                        String[] result = received.split("\"");
+                        ArrayList<String> cleanedArr = cleanArray(result);
+                        String resultCommand = cleanedArr.get(0);
+                        int resultFiles = Integer.parseInt(resultCommand.split(" ")[2]);
+                        String foundIp = resultCommand.split(" ")[3];
+                        String foundPort = resultCommand.split(" ")[4];
+                        String foundHops = resultCommand.split(" ")[5];
+                        System.out.println(resultFiles+" results found from "+foundIp+":"+foundPort+" in "+foundHops+" hops");
+                        System.out.print("File Names:");
+                        for(int i=1; i<cleanedArr.size(); i++){
+                            System.out.print(cleanedArr.get(i)+" ");
+                        }
+                        break;
+
+                    case "LEAVE":
+                        String ip = received.split(" ")[2];
+                        int port = Integer.parseInt(received.split(" ")[3]);
+                        int removingIndex = -1;
+                        for(int i =0; i<myNeighbours.size(); i++){
+                            if(myNeighbours.get(i).getIp().equals(ip) && myNeighbours.get(i).getPort() == port){
+                                removingIndex = i;
+                            }
+                        }
+                        if(removingIndex>=0){
+                            myNeighbours.remove(removingIndex);
+                            System.out.println("removed node "+ip+":"+port);
+                            String request = "LEAVEOK 0";
+                            String length = String.valueOf(request.length()+5);
+                            length = String.format("%4s", length).replace(' ', '0');
+                            request = length + " " + request;
+                            byte[] msg = request.getBytes();
+
+                            InetAddress receiverIP = null;
+                            try {
+                                receiverIP = InetAddress.getByName("localhost");
+
+                                DatagramPacket packet = new DatagramPacket(msg, msg.length, receiverIP, port);
+                                ds.send(packet);
+                            }catch (IOException e){
+                                e.printStackTrace();
+                            }
+                        } else {
+                            System.out.println("I dont have " + ip + ":" + port + " to remove");
+                        }
+
+                        //asking others to remove
+//                        byte[] msg = ("0028 LEAVE "+ip+" "+String.valueOf(port)).getBytes();
+//                        for(Node node:myNeighbours){
+//                            InetAddress neighbourIP = null;
+//                            try {
+//                                neighbourIP = InetAddress.getByName("localhost");
+//                                int neighbourPort = node.getPort();
+//
+//                                DatagramPacket packet = new DatagramPacket(msg, msg.length, neighbourIP, neighbourPort);
+//                                ds.send(packet);
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+
+                        break;
+
+                    case "LEAVEOK":
+                        if (received.split(" ")[2].equals("0"))
+                            System.out.println(this.ip+":"+this.port+" Leave succeful");
+                        else
+                            System.out.println("Leave failed!");
+                        break;
+
+                    case "GOSSIP":
+                        sendNeighbours(st);
+                        break;
+
+                    case "GOSSIPOK":
+                        handleGossip(st);
+                        break;
+
+                    case "ISACTIVE":
+                        checkHearBeat(st);
+                        break;
+
+                    case "ACTIVE":
+                        addPulseNeighbours(st);
+                        break;
+
+
+                    default:
+                        System.out.println("Invalid Command");
+                        break;
+                }
+            }
+        }catch (BindException ex){
+            System.out.println("This is already registered! Try a different one or un-regiter first");
+        }catch (SocketException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public void register() throws IOException {
+
         ds = new DatagramSocket();
         String msg = "REG "+this.ip+" "+this.port+" "+this.username;
         String length = String.valueOf(msg.length()+5);
@@ -334,6 +366,7 @@ public class Node implements Runnable{
     }
 
     public void askNeighboursToSearch(String  fileName, String searcherIp, String searcherPort, String hops) throws IOException{
+
         String request = "SER "+searcherIp+" "+searcherPort+" \""+fileName+"\" "+hops;
         String length = String.valueOf(request.length()+5);
         length = String.format("%4s", length).replace(' ', '0');
@@ -433,13 +466,6 @@ public class Node implements Runnable{
         showRoutingTable();
     }
 
-    @Override
-    public String toString() {
-        return "Node{" +
-                "ip='" + ip + '\'' +
-                ", port=" + port +
-                '}';
-    }
 
     public void showRoutingTable(){
         System.out.println("Routing table of "+ip+":"+port);
@@ -509,80 +535,149 @@ public class Node implements Runnable{
         }
     }
 
-    public  void handleGossip(StringTokenizer st, DatagramPacket incoming, String msg) {
+    public void sendNeighbours(StringTokenizer st){
 
-        String encrypt = st.nextToken();
-        String String = st.nextToken();
         String ip_of_sender=st.nextToken();
         int port_of_sender= Integer.parseInt(st.nextToken());
-        int no_of_nodes_received=Integer.parseInt(st.nextToken());
-        ArrayList<String> nodeKeys = new ArrayList<>();
-
         Node senderNode=new Node(ip_of_sender,port_of_sender,"");
+        String neighboursToBeSent = "";
+        int count = 0;
+        ArrayList<String> nodeKeys = new ArrayList<>();
 
         for (Node node:this.myNeighbours) {
             nodeKeys.add(node.ip+":"+node.port);
         }
 
         if (!nodeKeys.contains(senderNode.getKey())){
-            System.out.println("Node IP " + senderNode.ip + " Port "+senderNode.port+ " was added");
             addToRoutingTable(senderNode);
+            System.out.println("Node IP " + senderNode.ip + " Port "+senderNode.port+ " was added by Request");
         }
 
-        for (int i=0;i<no_of_nodes_received;i++){
-            Node node=new Node(st.nextToken(),Integer.parseInt(st.nextToken()),"");
 
-            if (nodeKeys.contains(node.getKey())){
-                continue;
-            }else {
-                addToRoutingTable(node);
-                System.out.println("Node IP " + node.ip + " Port "+node.port+ " was added");
+        if(this.myNeighbours.size()>1){
+                for (Node n : this.myNeighbours) {
+                    if (!senderNode.isEqual(n.getIp(), n.getPort())) {
+                        neighboursToBeSent += n.getIp() + " " + n.getPort() + " ";
+                        count++;
+                    } else {
+                        continue;
+                    }
+                }
+                neighboursToBeSent.substring(0, neighboursToBeSent.length() - 1); //remove last space
+                sendNeighboursToNeighbourMessage(senderNode,count,neighboursToBeSent);
+
+
+        }
+    }
+
+
+    public void sendNeighboursToNeighbourMessage(Node nodeToBeSent, int neighbourCount, String neighboursDetails){
+        InetAddress myip = null;
+        try {
+
+            myip = InetAddress.getByName(nodeToBeSent.getIp());
+            int port = nodeToBeSent.getPort();
+            String request="GOSSIPOK "+this.ip+" "+this.port+" "+neighbourCount+" "+neighboursDetails;
+            String length = String.valueOf(request.length()+5);
+            length = String.format("%4s", length).replace(' ', '0');
+            request = length + " " + request;
+            byte[] msg = request.getBytes();
+            DatagramPacket packet = new DatagramPacket(msg, msg.length, myip, port);
+            ds.send(packet);
+
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public  void handleGossip(StringTokenizer st) {
+
+
+        if(this.myNeighbours.size()<3){
+            String ip_of_sender=st.nextToken();
+            int port_of_sender= Integer.parseInt(st.nextToken());
+            int no_of_nodes_received=Integer.parseInt(st.nextToken());
+            ArrayList<String> nodeKeys = new ArrayList<>();
+
+            Node senderNode=new Node(ip_of_sender,port_of_sender,"");
+
+            for (Node node:this.myNeighbours) {
+                nodeKeys.add(node.ip+":"+node.port);
+            }
+
+            if (!nodeKeys.contains(senderNode.getKey())){
+                System.out.println("Node IP " + senderNode.ip + " Port "+senderNode.port+ " was added by Gossip");
+                addToRoutingTable(senderNode);
+            }
+
+            for (int i=0;i<no_of_nodes_received;i++){
+                Node node=new Node(st.nextToken(),Integer.parseInt(st.nextToken()),"");
+
+                if (nodeKeys.contains(node.getKey())){
+                    continue;
+                }else {
+                    addToRoutingTable(node);
+                    System.out.println("Node IP " + node.ip + " Port "+node.port+ " was added by Gossip");
+                }
+
             }
 
         }
-        //    notifyActive(senderNode);
-        System.out.println("");
-
     }
 
-    public void notifyActive(Node node){
+    public void checkHearBeat(StringTokenizer st){
 
+        String ip_of_sender=st.nextToken();
+        int port_of_sender= Integer.parseInt(st.nextToken());
+        Node senderNode=new Node(ip_of_sender,port_of_sender,"");
+        sendNeighboursToPulseMessage(senderNode);
+//        availableNeighbours.put(senderNode.ip+":"+senderNode.port,senderNode);
+    }
+
+    public void sendNeighboursToPulseMessage(Node nodeToBeSent){
         InetAddress myip = null;
-
         try {
 
-            myip = InetAddress.getByName(node.getIp());
-            int port = node.getPort();
+            myip = InetAddress.getByName(nodeToBeSent.getIp());
+            int port = nodeToBeSent.getPort();
             String request="ACTIVE "+this.ip+" "+this.port;
             String length = String.valueOf(request.length()+5);
             length = String.format("%4s", length).replace(' ', '0');
             request = length + " " + request;
             byte[] msg = request.getBytes();
             DatagramPacket packet = new DatagramPacket(msg, msg.length, myip, port);
-            try {
-                ds.send(packet);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            ds.send(packet);
         } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void addToRoutingTable(Node node){
+    public void addPulseNeighbours(StringTokenizer st){
 
+        String ip_of_sender=st.nextToken();
+        int port_of_sender= Integer.parseInt(st.nextToken());
+        Node senderNode=new Node(ip_of_sender,port_of_sender,"");
+        sendNeighboursToPulseMessage(senderNode);
+        availableNeighbours.put(senderNode.ip+":"+senderNode.port,senderNode);
+
+
+    }
+
+
+    public void addToRoutingTable(Node node){
         ArrayList<String> nodeKeys = new ArrayList<>();
         for (Node nodeVal:this.myNeighbours) {
             nodeKeys.add(nodeVal.ip+":"+nodeVal.port);
         }
-
         if (nodeKeys.contains(node.getKey())){
             return;
         }else {
             this.myNeighbours.add(node);
             routingTableStatus_plus1();
-
         }
     }
 
