@@ -72,7 +72,7 @@ public class FileController {
 
             //random file
             ClassLoader classLoader = getClass().getClassLoader();
-            String fileName = classLoader.getResource(".").getFile().split("target")[0].substring(1) + "src/main/resources/static/created_files/"+name+".txt";
+            String fileName = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\created_files\\"+name+".txt";
             BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
             writer.write(writingStr);
 
