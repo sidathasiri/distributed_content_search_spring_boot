@@ -16,7 +16,8 @@ public class Node implements Runnable{
     public String ip;
     public int port;
     public String username;
-    public ArrayList<Node> myNeighbours = new ArrayList<>();
+//    public ArrayList<Node> myNeighbours = new ArrayList<>();
+    List<Node> myNeighbours = Collections.synchronizedList(new ArrayList<Node>());
     public HashMap<String,Node> availableNeighbours = new HashMap<>();
     private ArrayList<String> resources = new ArrayList<>();
     DatagramSocket ds;
@@ -523,7 +524,7 @@ public class Node implements Runnable{
             if(content.toString().length()>0) {
                 String path = "static/downloaded";
                 ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-                path = "C:\\Users\\YD\\Desktop\\distributed_content_search_spring_boot\\src\\main\\resources\\static\\created_files\\"+name.replace("%20", " ")+".txt";
+                path = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloaded\\"+name.replace("%20", " ")+".txt";
                 FileOutputStream fileOutputStream = new FileOutputStream(path);
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
