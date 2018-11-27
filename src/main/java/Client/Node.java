@@ -522,8 +522,8 @@ public class Node implements Runnable{
 
             if(content.toString().length()>0) {
                 String path = "static/downloaded";
-             //   ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-                path = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\downloaded\\"+name+".txt";
+                ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+                path = "C:\\Users\\YD\\Desktop\\distributed_content_search_spring_boot\\src\\main\\resources\\static\\created_files\\"+name.replace("%20", " ")+".txt";
                 FileOutputStream fileOutputStream = new FileOutputStream(path);
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
@@ -700,9 +700,8 @@ public class Node implements Runnable{
         String ip_of_sender=st.nextToken();
         int port_of_sender= Integer.parseInt(st.nextToken());
         Node senderNode=new Node(ip_of_sender,port_of_sender,"");
-        sendNeighboursToPulseMessage(senderNode);
+//        sendNeighboursToPulseMessage(senderNode);
         availableNeighbours.put(senderNode.ip+":"+senderNode.port,senderNode);
-
 
     }
 
