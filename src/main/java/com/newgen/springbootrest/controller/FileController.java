@@ -31,8 +31,6 @@ public class FileController {
     @Autowired
     FileService fileService;
 
-    @Autowired
-    ServletContext context;
 
     @RequestMapping("/all")
     public String[] getAll() throws IOException {
@@ -72,7 +70,7 @@ public class FileController {
 
             //random file
             ClassLoader classLoader = getClass().getClassLoader();
-            String fileName = classLoader.getResource(".").getFile().split("target")[0].substring(1) + "src/main/resources/static/created_files/"+name+".txt";
+            String fileName = "C:\\Users\\YD\\Desktop\\distributed_content_search_spring_boot\\src\\main\\resources\\static\\created_files\\"+name+".txt";
             BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
             writer.write(writingStr);
 

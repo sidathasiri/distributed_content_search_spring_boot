@@ -302,7 +302,7 @@ public class Node implements Runnable{
         msg = length + " " + msg;
         byte b[] = msg.getBytes();     //request to register
 
-        InetAddress ip = InetAddress.getByName("192.168.8.103");
+        InetAddress ip = InetAddress.getByName("192.168.43.102");
         int port = 55555;
 
         DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
@@ -325,7 +325,7 @@ public class Node implements Runnable{
         msg = length + " " + msg;
         byte b[] = msg.getBytes();     //request to register
 
-        InetAddress ip = InetAddress.getByName("192.168.8.103");
+        InetAddress ip = InetAddress.getByName("192.168.43.102");
         int port = 55555;
 
         DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
@@ -523,7 +523,7 @@ public class Node implements Runnable{
             if(content.toString().length()>0) {
                 String path = "static/downloaded";
                 ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-                path = classLoader.getResource(path).getPath().split("target")[0].substring(1)+"src/main/resources/static/downloaded/"+name.replace("%20", " ")+".txt";
+                path = "C:\\Users\\YD\\Desktop\\distributed_content_search_spring_boot\\src\\main\\resources\\static\\created_files\\"+name.replace("%20", " ")+".txt";
                 FileOutputStream fileOutputStream = new FileOutputStream(path);
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
@@ -700,9 +700,8 @@ public class Node implements Runnable{
         String ip_of_sender=st.nextToken();
         int port_of_sender= Integer.parseInt(st.nextToken());
         Node senderNode=new Node(ip_of_sender,port_of_sender,"");
-        sendNeighboursToPulseMessage(senderNode);
+//        sendNeighboursToPulseMessage(senderNode);
         availableNeighbours.put(senderNode.ip+":"+senderNode.port,senderNode);
-
 
     }
 
