@@ -7,6 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.Scanner;
@@ -22,7 +26,7 @@ public class SpringBootRestApplication {
         FileService fileService = new FileService();
 
         System.out.println("IP is 127.0.0.1");
-        String ip = "127.0.0.1";
+        String ip =  getMyIp();
 
         System.out.print("Enter port:");
         port = scanner.nextInt();
@@ -62,6 +66,17 @@ public class SpringBootRestApplication {
             commandHandler.execute(command);
         }
 
+    }
+
+
+    public static String getMyIp() {
+        try(final DatagramSocket socket = new DatagramSocket()){
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            return socket.getLocalAddress().getHostAddress();
+        } catch (UnknownHostException | SocketException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static int getPort(){

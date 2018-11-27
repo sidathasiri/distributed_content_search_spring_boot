@@ -228,7 +228,7 @@ public class Node implements Runnable{
 
                             InetAddress receiverIP = null;
                             try {
-                                receiverIP = InetAddress.getByName("localhost");
+                                receiverIP = InetAddress.getByName(ip);
 
                                 DatagramPacket packet = new DatagramPacket(msg, msg.length, receiverIP, port);
                                 ds.send(packet);
@@ -302,7 +302,7 @@ public class Node implements Runnable{
         msg = length + " " + msg;
         byte b[] = msg.getBytes();     //request to register
 
-        InetAddress ip = InetAddress.getByName("localhost");
+        InetAddress ip = InetAddress.getByName("192.168.8.103");
         int port = 55555;
 
         DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
@@ -325,7 +325,7 @@ public class Node implements Runnable{
         msg = length + " " + msg;
         byte b[] = msg.getBytes();     //request to register
 
-        InetAddress ip = InetAddress.getByName("localhost");
+        InetAddress ip = InetAddress.getByName("192.168.8.103");
         int port = 55555;
 
         DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
@@ -356,10 +356,10 @@ public class Node implements Runnable{
         //0047 SER 129.82.62.142 5070 "Lord of the rings"
         byte b[] = msg.getBytes();
 
-        InetAddress ip = InetAddress.getLocalHost();
+
         for(Node n: myNeighbours){
             int port = n.getPort();
-
+            InetAddress ip = InetAddress.getByName(n.getIp());
             DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
             ds.send(packet);
         }
@@ -377,10 +377,10 @@ public class Node implements Runnable{
         System.out.println("asking neighbour received "+received);
         ds = new DatagramSocket();
 
-        InetAddress ip = InetAddress.getByName("localhost");
 
         for(Node n: myNeighbours){
             int port = n.getPort();
+            InetAddress ip = InetAddress.getByName(n.getIp());
             if(port!=Integer.parseInt(searcherPort) || !n.getIp().equals(searcherIp)) {
                 System.out.println("asked neighbour:"+n.getPort());
                 DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
@@ -407,7 +407,7 @@ public class Node implements Runnable{
         System.out.println("sending found results "+filesStr.trim());
         ds = new DatagramSocket();
 
-        InetAddress ip = InetAddress.getByName("localhost");
+        InetAddress ip = InetAddress.getByName(receiverIP);
         int port = Integer.parseInt(receiverPort);
 
         DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
@@ -457,7 +457,7 @@ public class Node implements Runnable{
         request = length + " " + request;
         byte[] msg = request.getBytes();
         for(Node node:myNeighbours){
-            InetAddress ip = InetAddress.getByName("localhost");
+            InetAddress ip = InetAddress.getByName(node.getIp());
             int port = node.getPort();
 
             DatagramPacket packet = new DatagramPacket(msg, msg.length, ip, port);
@@ -492,7 +492,7 @@ public class Node implements Runnable{
         System.out.println("leave:"+request);
         byte[] msg = request.getBytes();
         for(Node node:myNeighbours){
-            InetAddress ip = InetAddress.getByName("localhost");
+            InetAddress ip = InetAddress.getByName(node.getIp());
             int port = node.getPort();
 
             DatagramPacket packet = new DatagramPacket(msg, msg.length, ip, port);
@@ -737,4 +737,6 @@ public class Node implements Runnable{
             return false;
         }
     }
+
+
 }
