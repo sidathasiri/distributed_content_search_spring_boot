@@ -59,6 +59,7 @@ public class ActiveChecker extends Thread {
                         System.out.println("Node IP "+node.myNeighbours.get(removingIndex).getIp()+ " Port "
                                 +node.myNeighbours.get(removingIndex).getPort()+" was disconnected and remove from table");
                         node.myNeighbours.remove(removingIndex);
+                        removingIndex=-1;
 
                     }
                 }
