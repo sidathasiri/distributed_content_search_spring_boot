@@ -501,6 +501,7 @@ public class Node implements Runnable{
         }
         myNeighbours.clear();
         unregister();
+        System.exit(1);
     }
 
     public void download(String ip, String port, String name) throws IOException, NoSuchAlgorithmException {
