@@ -18,6 +18,7 @@ public class Node implements Runnable{
     public String username;
     public ArrayList<Node> myNeighbours = new ArrayList<>();
     public HashMap<String,Node> availableNeighbours = new HashMap<>();
+    public ArrayList<String> blacklist = new ArrayList<>();
     private ArrayList<String> resources = new ArrayList<>();
     DatagramSocket ds;
     public  int routingTableStatus=0;
@@ -302,7 +303,7 @@ public class Node implements Runnable{
         msg = length + " " + msg;
         byte b[] = msg.getBytes();     //request to register
 
-        InetAddress ip = InetAddress.getByName("192.168.8.103");
+        InetAddress ip = InetAddress.getByName("127.0.0.1");
         int port = 55555;
 
         DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
@@ -325,7 +326,7 @@ public class Node implements Runnable{
         msg = length + " " + msg;
         byte b[] = msg.getBytes();     //request to register
 
-        InetAddress ip = InetAddress.getByName("192.168.8.103");
+        InetAddress ip = InetAddress.getByName("127.0.0.1");
         int port = 55555;
 
         DatagramPacket packet = new DatagramPacket(b, b.length, ip, port);
@@ -419,7 +420,7 @@ public class Node implements Runnable{
         DatagramPacket response = new DatagramPacket(buffer, buffer.length);
         ds.receive(response);      //get the server response
         String responseMsg = new String(buffer, 0, response.getLength());
-        System.out.println("REg response: "+responseMsg);
+        System.out.println("Reg response: "+responseMsg);
         String responseMsgArr[] = responseMsg.split(" ");
 //        System.out.println(responseMsg);
 
@@ -523,7 +524,7 @@ public class Node implements Runnable{
             if(content.toString().length()>0) {
                 String path = "static/downloaded";
                 ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-                path = classLoader.getResource(path).getPath().split("target")[0].substring(1)+"src/main/resources/static/downloaded/"+name.replace("%20", " ")+".txt";
+                path = "C:\\working\\distributed_content_search_spring_boot - Copy\\src\\main\\resources\\static\\downloaded\\"+name.replace("%20", " ")+".txt";
                 FileOutputStream fileOutputStream = new FileOutputStream(path);
                 byte dataBuffer[] = new byte[1024];
                 int bytesRead;
@@ -657,8 +658,10 @@ public class Node implements Runnable{
                 if (nodeKeys.contains(node.getKey())){
                     continue;
                 }else {
-                    addToRoutingTable(node);
-                    System.out.println("Node IP " + node.ip + " Port "+node.port+ " was added by Gossip");
+                    if(!this.blacklist.contains(node.getKey())){
+                        addToRoutingTable(node);
+                        System.out.println("Node IP " + node.ip + " Port "+node.port+ " was added by Gossip");
+                    }
                 }
 
             }
@@ -700,7 +703,7 @@ public class Node implements Runnable{
         String ip_of_sender=st.nextToken();
         int port_of_sender= Integer.parseInt(st.nextToken());
         Node senderNode=new Node(ip_of_sender,port_of_sender,"");
-        sendNeighboursToPulseMessage(senderNode);
+//        sendNeighboursToPulseMessage(senderNode);
         availableNeighbours.put(senderNode.ip+":"+senderNode.port,senderNode);
 
 
