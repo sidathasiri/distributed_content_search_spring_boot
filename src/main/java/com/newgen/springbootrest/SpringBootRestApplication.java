@@ -25,23 +25,28 @@ public class SpringBootRestApplication {
         Random randomNum = new Random();
         FileService fileService = new FileService();
 
-        System.out.println("IP is 127.0.0.1");
         String ip =  getMyIp();
 
+
+        //get port
         System.out.print("Enter port:");
         port = scanner.nextInt();
 
+        //start spring boot REST API
         SpringApplication.run(SpringBootRestApplication.class, args);
 
         scanner.nextLine();
 
+        //get username
         System.out.print("Ënter username:");
         String username = scanner.nextLine();
 
         Node node1 = new Node(ip, port, username);
 
+        //start listening thread
         new Thread(node1).start ();
 
+        //add the serving resources to node
         for(int i=0; i<servingFiles.length; i++) {
             node1.addResource(servingFiles[i], "/"+servingFiles[i]);
         }
@@ -52,15 +57,19 @@ public class SpringBootRestApplication {
 
         CommandHandler commandHandler = new CommandHandler(node1);
 
+        //start gossiping thread
         Gossip gossip = new Gossip(node1);
         gossip.run();
 
+        //start the pulse thread
         Pulse pulse = new Pulse(node1);
         pulse.run();
 
+        //start the active checker thread
         ActiveChecker activeChecker = new ActiveChecker(node1);
         activeChecker.run();
 
+        //start listening to commands
         while (true){
             String command = scanner.nextLine();
             commandHandler.execute(command);

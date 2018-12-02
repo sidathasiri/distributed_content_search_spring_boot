@@ -13,7 +13,7 @@ import java.util.TimerTask;
 public class ActiveChecker extends Thread {
 
     public static int gossipThreadStartingDelay=30000; //10s
-    public static int gossipPeriod =20000; //10s
+    public static int gossipPeriod =30000; //10s
     public static Node node;
     public static DatagramSocket ds;
     public static DatagramSocket socket;
@@ -74,7 +74,7 @@ public class ActiveChecker extends Thread {
         if(counter==5){
             node.blacklist = new ArrayList<>();
             counter=0;
-            System.out.println("Blacklist cleared");
+//            System.out.println("Blacklist cleared");
         }
     }
 

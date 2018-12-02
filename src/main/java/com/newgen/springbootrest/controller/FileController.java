@@ -31,12 +31,13 @@ public class FileController {
     @Autowired
     FileService fileService;
 
-
+    //get all files
     @RequestMapping("/all")
     public String[] getAll() throws IOException {
         return fileService.getAllServingFiles();
     }
 
+    //get a single file
     @RequestMapping("/file")
     public HashMap<String, String> getOne(@RequestParam(value="name") String name){
         HashMap<String, String> map = new HashMap<>();
@@ -44,6 +45,7 @@ public class FileController {
         return map;
     }
 
+    //download a file
     @RequestMapping(path = "/download", method = RequestMethod.GET)
     public ResponseEntity<Resource> download(@RequestParam(value="name") String name) throws IOException, NoSuchAlgorithmException {
         String[] servingFiles = fileService.getAllServingFiles();
@@ -54,6 +56,7 @@ public class FileController {
                 break;
             }
         }
+        //check if file is srving
         if (isIncluded) {
             Random rand = new Random();
             int fileSize = (2 + rand.nextInt(8)) * 1024 * 1024;
@@ -62,13 +65,14 @@ public class FileController {
 
             String writingStr = new String(chars);
 
+            //calculate hash
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(writingStr.getBytes(StandardCharsets.UTF_8));
             String encoded = Base64.getEncoder().encodeToString(hash);
 
             System.out.println("File: " + name + "\nFile Size:" + fileSize / (1024 * 1024) + "Mb\nHash:" + encoded);
 
-            //random file
+            //create random file
             ClassLoader classLoader = getClass().getClassLoader();
             String fileName = "C:\\Users\\Sidath\\IdeaProjects\\spring-boot-rest\\src\\main\\resources\\static\\created_files\\"+name+".txt";
             BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
@@ -85,7 +89,7 @@ public class FileController {
 
             Path path = Paths.get(file.getAbsolutePath());
             ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
-
+            //send created file
             return ResponseEntity.ok()
                     .headers(headers)
                     .contentLength(file.length())
