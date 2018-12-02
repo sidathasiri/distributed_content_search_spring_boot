@@ -7,10 +7,10 @@ This project constructs a simple overlayed p2p file sharing network on top of LA
 * Then start a node by running the SpringBootRestApplication file
 * You will need to enter a valid port and a username for the current node
 
-##Searching
+## Searching
 * search filename
 * Ex: search harry potter
 
-##Downloading
+## Downloading
 * download ip port filename
 * Ex: download 192.168.43.157 8000 harry potter
