@@ -73,7 +73,7 @@ public class CommandHandler {
                     System.out.println("Illegal command");
                 }
             default:
-                //System.out.println("False command!");
+                System.out.println("False command!");
         }
     }
 }

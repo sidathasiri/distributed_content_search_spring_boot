@@ -25,7 +25,7 @@ public class Gossip extends Thread {
             sendGossip();
     }
 
-    public static void sendGossip(){
+    public static void sendGossip(){ //scheduler to schedule gossip sending interval
         Timer timer=new Timer();
         TimerTask task=new TimerTask() {
             @Override
@@ -36,7 +36,7 @@ public class Gossip extends Thread {
         timer.schedule(task,gossipThreadStartingDelay, gossipPeriod);
     }
 
-    public static void sendGossipsToNeighbours(){
+    public static void sendGossipsToNeighbours(){ //send gossip to neighbours asking for IPs
         if (node.myNeighbours.size() <3 ) {
 
             ArrayList<Node> allNeighbours = new ArrayList<>();
@@ -50,7 +50,7 @@ public class Gossip extends Thread {
         }
     }
 
-    public static void sendNeighboursToNeighbourMessage(Node nodeToBeSent){
+    public static void sendNeighboursToNeighbourMessage(Node nodeToBeSent){ //gossip request create
         InetAddress myip = null;
         try {
             ds = new DatagramSocket();

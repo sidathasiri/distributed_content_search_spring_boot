@@ -622,6 +622,10 @@ public class Node implements Runnable{
         }
     }
 
+    /**
+     * @desc send posessing ips to requesting node
+     * @param st
+     */
     public void sendNeighbours(StringTokenizer st){
         String ip_of_sender=st.nextToken();
         int port_of_sender= Integer.parseInt(st.nextToken());
@@ -651,12 +655,16 @@ public class Node implements Runnable{
                 }
                 neighboursToBeSent.substring(0, neighboursToBeSent.length() - 1); //remove last space
                 sendNeighboursToNeighbourMessage(senderNode,count,neighboursToBeSent);
-
-
         }
     }
 
 
+    /**
+     * @desc encode gossipok message
+     * @param nodeToBeSent
+     * @param neighbourCount
+     * @param neighboursDetails
+     */
     public void sendNeighboursToNeighbourMessage(Node nodeToBeSent, int neighbourCount, String neighboursDetails){
         InetAddress myip = null;
         try {
@@ -678,8 +686,11 @@ public class Node implements Runnable{
         }
     }
 
+    /**
+     * @desc handle gossip response
+     * @param st
+     */
     public  void handleGossip(StringTokenizer st) {
-
 
         if(this.myNeighbours.size()<3){
             String ip_of_sender=st.nextToken();
@@ -715,15 +726,25 @@ public class Node implements Runnable{
         }
     }
 
+    /**
+     * @desc process is active message from neighbour nodes
+     * @param st
+     */
     public void checkHearBeat(StringTokenizer st){
 
         String ip_of_sender=st.nextToken();
         int port_of_sender= Integer.parseInt(st.nextToken());
         Node senderNode=new Node(ip_of_sender,port_of_sender,"");
         sendNeighboursToPulseMessage(senderNode);
-//        availableNeighbours.put(senderNode.ip+":"+senderNode.port,senderNode);
+
     }
 
+
+
+    /**
+     * @desc response to is active request
+     * @param nodeToBeSent
+     */
     public void sendNeighboursToPulseMessage(Node nodeToBeSent){
         InetAddress myip = null;
         try {
@@ -744,12 +765,15 @@ public class Node implements Runnable{
         }
     }
 
+    /**
+     * @desc add active responses to hash map
+     * @param st
+     */
     public void addPulseNeighbours(StringTokenizer st){
 
         String ip_of_sender=st.nextToken();
         int port_of_sender= Integer.parseInt(st.nextToken());
         Node senderNode=new Node(ip_of_sender,port_of_sender,"");
-//        sendNeighboursToPulseMessage(senderNode);
         availableNeighbours.put(senderNode.ip+":"+senderNode.port,senderNode);
 
 
@@ -765,27 +789,9 @@ public class Node implements Runnable{
             return;
         }else {
             this.myNeighbours.add(node);
-            routingTableStatus_plus1();
         }
     }
 
-
-    public void routingTableStatus_plus1(){
-        routingTableStatus++;
-    }
-
-    public  void setGossipSendingStatusToRoutingTableStatus(){
-        gossipSendingStatus=routingTableStatus;
-    }
-
-
-    public  boolean hasRoutingTableIncreasedComparedToGossipStatus(){
-        if (routingTableStatus>gossipSendingStatus){
-            return true;
-        }else{
-            return false;
-        }
-    }
 
 
 }

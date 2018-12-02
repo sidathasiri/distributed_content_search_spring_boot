@@ -11,8 +11,8 @@ import java.util.TimerTask;
 
 public class Pulse extends Thread {
 
-    public static   int gossipThreadStartingDelay=1000; //10s
-    public static   int gossipPeriod =10000; //10s
+    public static   int pulseThreadStartingDelay=1000; //10s
+    public static   int pulsePeriod =10000; //10s
     public static Node node;
     public static DatagramSocket ds;
     public static DatagramSocket socket;
@@ -28,7 +28,7 @@ public class Pulse extends Thread {
         sendPulse();
     }
 
-    public static void sendPulse(){
+    public static void sendPulse(){ //scheduler to schedule pulse sending interval
         Timer timer=new Timer();
         TimerTask task=new TimerTask() {
             @Override
@@ -36,10 +36,10 @@ public class Pulse extends Thread {
                 sendPulseToNeighbours();
             }
         };
-        timer.schedule(task,gossipThreadStartingDelay, gossipPeriod);
+        timer.schedule(task,pulseThreadStartingDelay, pulsePeriod);
     }
 
-    public static void sendPulseToNeighbours(){
+    public static void sendPulseToNeighbours(){ //send pulse to every neighbour
         if (node.myNeighbours.size() > 1) {
 
             ArrayList<Node> allNeighbours = new ArrayList<>();
@@ -53,7 +53,7 @@ public class Pulse extends Thread {
 
     }
 
-    public static void sendNeighboursToPulseMessage(Node nodeToBeSent){
+    public static void sendNeighboursToPulseMessage(Node nodeToBeSent){ //creat pulse message
         InetAddress myip = null;
         try {
             ds = new DatagramSocket();
