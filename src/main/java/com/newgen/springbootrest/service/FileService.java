@@ -9,7 +9,9 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Random;
 
-//file service to handle the serving files
+/**
+ * @desc file service to handle the serving files
+ */
 @Service
 public class FileService {
     Random randomNum = new Random();
@@ -30,7 +32,11 @@ public class FileService {
         setServingFiles();
     }
 
-    //get a single file
+    /**
+     * @desc get a single file
+     * @param name
+     * @return
+     */
     public String getFile(String name){
         for(int i=0; i<servingFiles.length; i++){
             if(servingFiles[i].equals(name)){
@@ -40,17 +46,26 @@ public class FileService {
         return null;
     }
 
-    //get all files
+    /**
+     * @desc get all files
+     * @return
+     * @throws IOException
+     */
     public String[] getAll() throws IOException {
         return files;
     }
 
-    //get all serving files
+    /**
+     * @desc get all serving files
+     * @return
+     */
     public String[] getAllServingFiles(){
         return servingFiles;
     }
 
-    //set the serving files
+    /**
+     * @desc set the serving files
+     */
     public void setServingFiles(){
         int rand = 3 + randomNum.nextInt(6-3);
         servingFiles = new String[rand];

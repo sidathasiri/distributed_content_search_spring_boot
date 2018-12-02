@@ -31,13 +31,21 @@ public class FileController {
     @Autowired
     FileService fileService;
 
-    //get all files
+    /**
+     * @desc get all files
+     * @return
+     * @throws IOException
+     */
     @RequestMapping("/all")
     public String[] getAll() throws IOException {
         return fileService.getAllServingFiles();
     }
 
-    //get a single file
+    /**
+     * @desc get a single file
+     * @param name
+     * @return
+     */
     @RequestMapping("/file")
     public HashMap<String, String> getOne(@RequestParam(value="name") String name){
         HashMap<String, String> map = new HashMap<>();
@@ -45,7 +53,13 @@ public class FileController {
         return map;
     }
 
-    //download a file
+    /**
+     * @desc download a file
+     * @param name
+     * @return
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     */
     @RequestMapping(path = "/download", method = RequestMethod.GET)
     public ResponseEntity<Resource> download(@RequestParam(value="name") String name) throws IOException, NoSuchAlgorithmException {
         String[] servingFiles = fileService.getAllServingFiles();

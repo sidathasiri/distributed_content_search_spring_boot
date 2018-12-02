@@ -54,7 +54,11 @@ public class Node implements Runnable{
         return ip+":"+port;
     }
 
-    //clean array by removing empty strings
+    /**
+     * @desc  clean a given array by removing empty strings
+     * @param arr
+     * @return cleaned array
+     */
     private ArrayList<String> cleanArray(String[] arr){
         ArrayList<String> cleanedList = new ArrayList<>();
         for(String i:arr){
@@ -65,7 +69,12 @@ public class Node implements Runnable{
         return cleanedList;
     }
 
-    //check whether it is a neighbour or not
+    /**
+     * @desc check whether it is a neighbour or not
+     * @param ip
+     * @param port
+     * @return
+     */
     private Boolean isNeighbour(String ip, int port){
         boolean found = false;
         for(Node i:myNeighbours){
@@ -109,7 +118,9 @@ public class Node implements Runnable{
                 '}';
     }
 
-    //continously running thread listing for messages from other nodes
+    /**
+     * @desc continously running thread listing for messages from other nodes
+     */
     @Override
     public void run() {
         DatagramSocket socket = null;
@@ -277,7 +288,10 @@ public class Node implements Runnable{
         }
     }
 
-    //node regstering
+    /**
+     * @desc node regstering method
+     * @throws IOException
+     */
     public void register() throws IOException {
         ds = new DatagramSocket();
         String msg = "REG "+this.ip+" "+this.port+" "+this.username;
@@ -299,7 +313,10 @@ public class Node implements Runnable{
 
     }
 
-    //node unregister
+    /**
+     * @desc node unregister method
+     * @throws IOException
+     */
     public void unregister() throws IOException{
         ds = new DatagramSocket();
         String msg = "UNREG "+this.ip+" "+this.port+" "+this.username;
@@ -329,7 +346,11 @@ public class Node implements Runnable{
         }
     }
 
-    //search file
+    /**
+     * @desc search a given file
+     * @param name
+     * @throws IOException
+     */
     public void search(String name) throws IOException {
         String msg = "SER "+this.ip+" "+this.port+" \""+name+"\" 0";
         String length = String.valueOf(msg.length()+5);
@@ -346,7 +367,14 @@ public class Node implements Runnable{
         }
     }
 
-    //ask neighbours to search with flooding
+    /**
+     * @desc ask neighbours to search with flooding
+     * @param fileName
+     * @param searcherIp
+     * @param searcherPort
+     * @param hops
+     * @throws IOException
+     */
     public void askNeighboursToSearch(String  fileName, String searcherIp, String searcherPort, String hops) throws IOException{
         String request = "SER "+searcherIp+" "+searcherPort+" \""+fileName+"\" "+hops;
         String length = String.valueOf(request.length()+5);
@@ -367,7 +395,14 @@ public class Node implements Runnable{
         }
     }
 
-    //send the found file to requester
+    /**
+     * @desc send the found file to requester
+     * @param fileName
+     * @param receiverIP
+     * @param receiverPort
+     * @param hops
+     * @throws IOException
+     */
     public void sendFilePathToRequester(Set<String> fileName, String receiverIP, String receiverPort, String hops) throws IOException{
         String filesStr="";
 
@@ -391,7 +426,10 @@ public class Node implements Runnable{
         ds.send(packet);    //send results
     }
 
-    //adding the found nodes from server as neighbours
+    /**
+     * @desc adding the found nodes from server as neighbours
+     * @throws IOException
+     */
     public void addNeighboursAfterRegister() throws IOException {
         byte[] buffer = new byte[512];
         DatagramPacket response = new DatagramPacket(buffer, buffer.length);
@@ -427,7 +465,10 @@ public class Node implements Runnable{
 
     }
 
-    //join the network
+    /**
+     * @desc join the network
+     * @throws IOException
+     */
     public void join() throws IOException {
         String request = "JOIN "+this.ip+" "+this.port;
         String length = String.valueOf(request.length()+5);
@@ -444,7 +485,9 @@ public class Node implements Runnable{
         showRoutingTable();
     }
 
-    //display the routung table
+    /**
+     * @desc display the routung table
+     */
     public void showRoutingTable(){
         System.out.println("Routing table of "+ip+":"+port);
         System.out.println("--------------------------------------");
@@ -453,7 +496,9 @@ public class Node implements Runnable{
         }
     }
 
-    //display the serving files in current node
+    /**
+     * @desc display the serving files in current node
+     */
     public void showResources(){
         System.out.println("Stored files at "+ip+":"+port);
         System.out.println("---------------------------------------");
@@ -462,7 +507,10 @@ public class Node implements Runnable{
         });
     }
 
-    //leave the network
+    /**
+     * @desc leave the network
+     * @throws IOException
+     */
     public void leave() throws IOException{
         String request = "LEAVE "+this.ip+" "+this.port;
         String length = String.valueOf(request.length()+5);
@@ -482,7 +530,14 @@ public class Node implements Runnable{
         System.exit(1);  //kill current node
     }
 
-    //download file
+    /**
+     * @desc download file
+     * @param ip
+     * @param port
+     * @param name
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     */
     public void download(String ip, String port, String name) throws IOException, NoSuchAlgorithmException {
         try {
             System.out.println("Startded downloading...");
@@ -549,7 +604,11 @@ public class Node implements Runnable{
         }
     }
 
-    //remove a existing neighbour
+    /**
+     * @desc remove a existing neighbour
+     * @param ip
+     * @param port
+     */
     private void removeNeighbour(String ip, int port){
         int removingIndex = -1;
         for(int i =0; i<myNeighbours.size(); i++){
